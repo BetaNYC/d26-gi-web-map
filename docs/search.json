@@ -1,0 +1,9 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Template Title",
+    "section": "",
+    "text": "Code\n# Use quarto render to generate a static site in /docs\n# Set github pages to deploy from main branch, /docs\n\nlibrary(flextable)\nlibrary(sf)\nlibrary(tidyverse)\n\n# If needed, ensure that the Quarto render and RStudio read the same environment vars\n# readRenviron(\".Renviron\")"
+  }
+]

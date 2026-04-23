@@ -1,0 +1,15 @@
+{
+  "hash": "9e018a559cea489249360c63f52352b7",
+  "result": {
+    "engine": "knitr",
+    "markdown": "---\ntitle: \"Template Title\"\nformat: \n  html:\n    code-fold: true\n---\n\n\n::: {.cell}\n\n```{.r .cell-code}\n# Use quarto render to generate a static site in /docs\n# Set github pages to deploy from main branch, /docs\n\nlibrary(flextable)\nlibrary(sf)\nlibrary(tidyverse)\n\n# If needed, ensure that the Quarto render and RStudio read the same environment vars\n# readRenviron(\".Renviron\")\n```\n:::\n\n\n\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

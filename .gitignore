@@ -1,0 +1,8 @@
+/.quarto/
+/data
+.DS_Store
+*/.DS_Store
+.Rproj.user/
+.Renviron
+**/*.quarto_ipynb
+/index_cache/

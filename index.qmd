@@ -1,0 +1,26 @@
+---
+title: "Template Title"
+format: 
+  html:
+    code-fold: true
+---
+
+```{r}
+#| label: setup
+#| include: true
+#| warning: false
+#| message: false
+
+# Use quarto render to generate a static site in /docs
+# Set github pages to deploy from main branch, /docs
+
+library(flextable)
+library(sf)
+library(tidyverse)
+
+# If needed, ensure that the Quarto render and RStudio read the same environment vars
+# readRenviron(".Renviron")
+
+```
+
+
