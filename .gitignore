@@ -10,13 +10,13 @@
 
 # Local project data
 data/source
-data/prepared
-
-# targets cache
-_targets/
+data/prepared/*
 
 # Add exception for 311 Geojson
 !data/prepared/flooding_311.geojson
+
+# targets cache
+_targets/
 
 # Local scratch
 test/
