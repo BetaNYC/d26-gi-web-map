@@ -1,0 +1,89 @@
+# .github/workflows/refresh-311.yml
+
+# Scheduled refresh of flood-related 311 service requests
+# Fetches filtered records from NYC Open Data, writes the resulting GeoJSON,
+# and commits it. The committed file is what the main pipeline reads
+# as the input to the `complaints` group.
+
+---
+name: Refresh 311
+
+on:
+  # 06:00 UTC = 02:00 ET
+  schedule:
+    - cron: "0 6 * * *"
+  # For manual trigger
+  workflow_dispatch:
+
+# Need write permission on contents to push the refreshed file back to the repo
+permissions:
+  contents: write
+
+jobs:
+  refresh-311:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Pull down the repository so refresh_311.R is available
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Install R, pinned to version used locally
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: "4.6.0"
+
+      # 3. Install R packages. r-lib/actions handles the binary install
+      # of sf/arrow on Linux and caches results across runs
+      - name: Install R packages
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            sf
+            arrow
+            socratadata
+
+      # 4. Pull d26_zctas.parquet from the data-v2 Release
+      # the runner's gh CLI is pre-authenticated against GITHUB_TOKEN
+      - name: Download d26_zctas.parquet from data-v2 release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p data/prepared
+          gh release download data-v2 \
+            --repo ${{ github.repository }} \
+            --pattern d26_zctas.parquet \
+            --dir data/prepared/
+
+      # 5. Run the refresh script. Writes data/prepared/flooding_311.geojson
+      - name: Run refresh script
+        env:
+          soc_api_key_id: ${{ secrets.SOC_API_KEY_ID }}
+          soc_api_key_secret: ${{ secrets.SOC_API_KEY_SECRET }}
+        run: Rscript scripts/refresh_311.R
+
+      # 6. Stage the GeoJSON; if it differs from the committed version,
+      # commit and push. Otherwise exit cleanly without an empty commit.
+      - name: Commit and push if changed
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/prepared/flooding_311.geojson
+          if git diff --staged --quiet; then
+            echo "No changes to 311 layer; nothing to commit."
+            echo "committed=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          git commit -m "chore(311): refresh $(date -u +%Y-%m-%d)"
+          git push
+          echo "committed=true" >> $GITHUB_OUTPUT
+      - name: Trigger pipeline workflow
+        if: steps.commit.outputs.committed == 'true'
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.PIPELINE_DISPATCH_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/${{ github.repository }}/dispatches \
+            -d '{"event_type":"refresh-311-completed"}'

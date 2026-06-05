@@ -1,0 +1,106 @@
+# .github/workflows/pipeline.yml
+#
+# Main pipeline. Runs the {targets} DAG inside the project's GHCR image,
+# auto-commits resulting outputs to data/processed/, and deploys the
+# artifacts to GitHub Pages.
+
+---
+name: Pipeline
+
+on:
+  # Source-code changes trigger rebuilds. paths-ignore prevents the workflow's
+  # own auto-commit to data/processed/ from re-triggering itself.
+  push:
+    branches: [main]
+    paths-ignore:
+      - "data/processed/**"
+  # Fired by refresh-311.yml after it commits a new 311 GeoJSON.
+  repository_dispatch:
+    types: [refresh-311-completed]
+  # Weekly catch-up for tar_age-invalidated API sources.
+  schedule:
+    - cron: "0 7 * * 1"  # Mondays 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write     # auto-commit outputs back to main
+  pages: write        # required for deploy-pages
+  id-token: write     # required for OIDC-based Pages deploy auth
+
+# Prevent overlapping pipeline runs on the same branch.
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    # Socrata credentials are needed by Socrata-fetching targets (gi_all_assets,
+    # cb, fvi). Set at the job level so they apply to every step.
+    env:
+      soc_api_key_id: ${{ secrets.SOC_API_KEY_ID }}
+      soc_api_key_secret: ${{ secrets.SOC_API_KEY_SECRET }}
+    # All steps run inside the GHCR image. Everything (GDAL with Parquet,
+    # tippecanoe, R packages, gh CLI) lives in the image so steps are pure
+    # workspace operations.
+    container:
+      image: ghcr.io/${{ github.repository }}:latest
+      credentials:
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Pull the Tier 2 mirror. Update the tag name when you publish data-v3.
+      - name: Download data mirror
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p data/prepared
+          gh release download data-v2 \
+            --repo ${{ github.repository }} \
+            --dir data/prepared/
+
+      # Run the pipeline. Validation failures stop tar_make() here; the deploy
+      # job depends on this job succeeding, so the previous Pages deploy stays
+      # live on failure.
+      - name: Run targets pipeline
+        run: Rscript -e 'targets::tar_make()'
+
+      # Auto-commit any changed outputs. Push uses GITHUB_TOKEN, which by
+      # design does NOT re-trigger this workflow on push -- the paths-ignore
+      # rule above is the second layer of protection.
+      - name: Commit processed outputs if changed
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/processed/
+          if git diff --staged --quiet; then
+            echo "No changes to processed outputs; nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore(pipeline): refresh outputs $(date -u +%Y-%m-%d)"
+          git push
+
+      # Package data/processed/ for the Pages deploy job. We do this even
+      # when no commit happened so deploys can recover from past misconfigs
+      # without needing a forced output change.
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: data/processed/
+
+  deploy:
+    needs: pipeline
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

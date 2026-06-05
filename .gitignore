@@ -1,8 +1,24 @@
-/.quarto/
-/data
+# OS
 .DS_Store
-*/.DS_Store
+
+# R
+.Rhistory
+.Rdata
+.Ruserdata
 .Rproj.user/
 .Renviron
-**/*.quarto_ipynb
-/index_cache/
+
+# Local project data
+data/source
+data/prepared
+
+# targets cache
+_targets/
+
+# Add exception for 311 Geojson
+!data/prepared/flooding_311.geojson
+
+# Local scratch
+test/
+.positai
+

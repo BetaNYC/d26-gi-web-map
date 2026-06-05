@@ -1,0 +1,54 @@
+# .github/workflows/build-image.yml
+#
+# Builds the project's Docker image and pushes it to GitHub Container Registry.
+# Runs only when the Dockerfile changes (or on manual dispatch). The resulting
+# image is consumed by pipeline.yml via `container:`. Build is slow (~20 min
+# cold cache because of the GDAL-from-source step) but happens rarely.
+
+---
+name: Build image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write  # required to push to ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Buildx enables layer caching across runs. Without it, every build is
+      # cold and takes ~20 min; with it, incremental builds are 2-5 min.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Workflow's default GITHUB_TOKEN can push to the repo's own GHCR
+      # namespace. No PAT required.
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Push two tags: :latest for pipeline.yml to pull, :<sha> so historical
+      # pipeline runs can be traced back to the exact image they used.
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
