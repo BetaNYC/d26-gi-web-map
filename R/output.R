@@ -83,3 +83,11 @@ write_nfhl_100yr_pmtiles <- function(nfhl_100yr_d26_zctas, path) {
 write_nfhl_500yr_pmtiles <- function(nfhl_500yr_d26_zctas, path) {
   write_pmtiles(nfhl_500yr_d26_zctas |> group_by(flood_plane) |> summarize(), path)
 }
+
+# Copy a file from data/prepared to data/processed
+# This moves the COG TIFFs into the deployable output directory
+# COG headers can't be accessed via GitHub Releases
+copy_file <- function(source_path, output_path) {
+  file.copy(source_path, output_path, overwrite = TRUE)
+  output_path
+}

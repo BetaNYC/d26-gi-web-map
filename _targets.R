@@ -169,5 +169,13 @@ list(
              format = "file"),
   tar_target(nfhl_500yr_pmtiles_path,
              write_nfhl_500yr_pmtiles(nfhl_500yr_d26_zctas, "data/processed/nfhl_500yr.pmtiles"),
-             format = "file")
+             format = "file"),
+  
+  # Copy COG TIFFs to data/processed for deployment
+  tar_target(tree_canopy_cog_output_path,
+             copy_file(tree_canopy_cog_path,
+                       "data/processed/tree_canopy.tif")),
+  tar_target(permeable_surface_cog_output_path,
+             copy_file(permeable_surface_cog_path,
+                       "data/processed/permeable_surface.tif"))
 )
