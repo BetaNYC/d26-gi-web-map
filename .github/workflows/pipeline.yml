@@ -44,7 +44,7 @@ jobs:
     # tippecanoe, R packages, gh CLI) lives in the image so steps are pure
     # workspace operations.
     container:
-      image: ghcr.io/${{ github.repository }}:latest
+      image: ghcr.io/betanyc/d26-gi-web-map:latest
       credentials:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
