@@ -18,6 +18,10 @@ on:
 permissions:
   contents: read
   packages: write  # required to push to ghcr.io
+  
+concurrency:
+  group: build-image-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
