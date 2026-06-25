@@ -27,15 +27,17 @@
   /** Zoom added on top of the exact fit — frames slightly tighter than the bounds. */
   const FRAME_ZOOM_BUMP = 0.1;
 
-  /** Pan clamp: D26 bounds padded by ~0.5× their span on each side, so the user
-   *  can pan a little for context but not wander off to other neighborhoods. */
+  /** Pan clamp: D26 bounds on each side, so the user
+   *  can pan a little for context but not wander off to other neighborhoods.
+   *  The values below account for panning while zoomed out with the mobile extended sheet visible. */
   const MAX_BOUNDS: [[number, number], [number, number]] = (() => {
     const [[w, s], [e, n]] = D26_BOUNDS;
     const dx = (e - w) * 2
-    const dy = (n - s) * 1.2;
+    const dy_n = (n - s) * 2;
+    const dy_s = (n - s) * 4.5;
     return [
-      [w - dx, s - dy],
-      [e + dx, n + dy]
+      [w - dx, s - dy_s],
+      [e + dx, n + dy_n]
     ];
   })();
 
