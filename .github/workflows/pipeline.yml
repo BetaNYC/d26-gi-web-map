@@ -44,6 +44,11 @@ jobs:
     outputs:
       data: ${{ steps.filter.outputs.data || 'true' }}
     steps:
+      # paths-filter diffs against the push's before-SHA via git, so it needs a
+      # working checkout; without it the action exits 128 ("not a git
+      # repository"). Only needed on push (the filter is skipped otherwise).
+      - uses: actions/checkout@v4
+        if: github.event_name == 'push'
       - uses: dorny/paths-filter@v3
         id: filter
         if: github.event_name == 'push'
