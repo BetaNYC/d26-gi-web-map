@@ -183,6 +183,10 @@ jobs:
 
   deploy:
     needs: build-web
+    # build-web runs even when pipeline is skipped (web-only push), but a skipped
+    # upstream job otherwise propagates a skip down to deploy. Opt out of that
+    # propagation so we publish whenever the web build succeeded -- pipeline or not.
+    if: ${{ !cancelled() && needs.build-web.result == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
