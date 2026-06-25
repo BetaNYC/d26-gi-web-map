@@ -33,7 +33,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Gate the heavy pipeline on whether data-affecting source actually changed.
+  # On push, paths-filter inspects the changed files; on every other event
+  # (schedule, 311 dispatch, manual) the filter step is skipped and the output
+  # defaults to 'true' so the pipeline always runs. A web-/docs-only push yields
+  # 'false' -> pipeline is skipped and build-web deploys from the committed
+  # data/processed/ snapshot instead of re-running {targets}.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      data: ${{ steps.filter.outputs.data || 'true' }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'push'
+        with:
+          filters: |
+            data:
+              - 'R/**'
+              - '_targets.R'
+              - 'scripts/**'
+              - 'data/prepared/**'
+              - 'Dockerfile'
+              - '.github/workflows/pipeline.yml'
+
   pipeline:
+    needs: changes
+    if: needs.changes.outputs.data == 'true'
     runs-on: ubuntu-latest
     # Socrata credentials are needed by Socrata-fetching targets (gi_all_assets,
     # cb, fvi). Set at the job level so they apply to every step.
@@ -99,21 +125,35 @@ jobs:
   # on the plain runner (Node), not the geospatial container.
   build-web:
     needs: pipeline
+    # Run whether the pipeline ran or was skipped (web-/docs-only push), but not
+    # if it failed or was cancelled -- that keeps the last good Pages deploy live.
+    if: always() && needs.pipeline.result != 'failure' && needs.pipeline.result != 'cancelled'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       # web/public/data is a symlink (→ ../../data/processed) for local dev. In CI
-      # replace it with the real data so the build never depends on symlink
-      # restoration or Vite following it: download the artifact straight into it.
+      # replace it with real data so the build never depends on symlink
+      # restoration or Vite following it.
       - name: Remove the dev data symlink
         run: rm -f web/public/data
-      - name: Download processed data
+
+      # Pipeline ran this run: use its freshly generated outputs. This job's
+      # checkout predates the pipeline's auto-commit, so the data/processed/ in
+      # the workspace would otherwise be a run behind.
+      - name: Download processed data (pipeline ran)
+        if: needs.pipeline.result == 'success'
         uses: actions/download-artifact@v4
         with:
           name: processed-data
           path: web/public/data
+
+      # Pipeline skipped (no data-affecting change): build against the committed
+      # data/processed/ snapshot already present in the checkout.
+      - name: Use committed processed data (pipeline skipped)
+        if: needs.pipeline.result == 'skipped'
+        run: cp -R data/processed web/public/data
 
       - name: Setup Node
         uses: actions/setup-node@v4
