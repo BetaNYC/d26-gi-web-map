@@ -35,7 +35,7 @@
     flex: 1 0 0;
     min-width: 0;
     margin: 0;
-    font-size: var(--type-small-size);
+    font-size: var(--type-body-size);
     font-weight: var(--type-small-bold-weight);
     color: var(--color-on-surface-primary);
   }
