@@ -20,7 +20,11 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 8px 6px;
+    /* AUTHENTIC Sans sits ~0.1em above its line-box center (typo asc/desc
+       776/-224, cap 752 @ 1000upm), so a flex-centered label reads high. Bias
+       the vertical padding down ~1.4px (total 16px unchanged) to optically
+       center it within the outline. */
+    padding: 9.4px 6px 6.6px;
     border: 0.75px solid var(--color-on-surface-primary);
     border-radius: 3px;
     background: var(--color-surface-base);

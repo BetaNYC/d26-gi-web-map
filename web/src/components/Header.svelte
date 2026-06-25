@@ -107,6 +107,13 @@
   .gh-link:hover {
     background: color-mix(in srgb, var(--color-on-surface-primary) 6%, var(--color-surface-base));
   }
+  /* The icon centers to the line box, but AUTHENTIC Sans's glyphs sit ~0.1em
+     above it (typo asc/desc 776/-224, cap 752), so the icon reads low against
+     the text. Lift it to the text's cap-height center. translateY keeps layout
+     (and the flex gap) intact. */
+  .gh-link :global(svg) {
+    transform: translateY(-0.1em);
+  }
   /* Tapped variant: Github is absolutely centered in the bar. */
   .gh-link--center {
     position: absolute;
