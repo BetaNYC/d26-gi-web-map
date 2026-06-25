@@ -157,13 +157,14 @@
     display: flex;
     flex-direction: column;
     background: var(--color-surface-base);
-    /* Assumed reserved-scrollbar-gutter width (classic scrollbars ~15px). The
-       scroll area subtracts this from its right padding so its content right
-       edge aligns with the (un-gutter'd) frozen header — keeping rows and both
-       dividers the same width. OS-sensitive: on overlay-scrollbar systems the
-       gutter is ~0, making the right padding read a touch tight; on Windows
-       it's ~17px. Adjust here if needed. */
-    --scrollbar-gutter-w: 15px;
+    /* Width the scroll area subtracts from its right padding to compensate for
+       the reserved scrollbar gutter, so its content right edge aligns with the
+       (un-gutter'd) frozen header. Must equal the ACTUAL scrollbar width: 0 for
+       the overlay scrollbars used on mobile/touch (default here), ~15px for the
+       classic scrollbars on the desktop panel (set in the >=768px block). Using
+       15px on mobile collapsed the whole right padding, since overlay gutters
+       reserve ~0 and never add it back. */
+    --scrollbar-gutter-w: 0px;
   }
 
   /* Mobile = bottom sheet, sized by height so it never covers the footer. */
@@ -265,9 +266,14 @@
       transition: none;
       border-radius: 1px;
       pointer-events: auto;
-      /* Figma 40:551: pr 20px, no left padding. */
+      /* No left padding (Figma 40:551); right padding matches the .body desktop
+         gutter (--space-400, 16px in App.svelte) so the content's left and right
+         margins read symmetric. (Figma noted pr 20px, but that left a ~4px
+         asymmetry against the 16px body gutter.) */
       --pad-l: 0px;
-      --pad-r: 20px;
+      --pad-r: var(--space-400);
+      /* Desktop panel uses classic scrollbars; compensate for their gutter. */
+      --scrollbar-gutter-w: 15px;
     }
     /* Ignore the mobile expanded height if it lingers after a mobile→desktop resize. */
     .sidebar.is-expanded {
