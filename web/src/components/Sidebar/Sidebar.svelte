@@ -87,10 +87,24 @@
   // moves between peek and expanded — including during the transition. Only used
   // by the mobile media query in Map.svelte; ignored on desktop.
   let sheetEl = $state<HTMLElement>();
+  // Measure the scroll area's actually-reserved scrollbar gutter (offsetWidth -
+  // clientWidth: 0 on overlay-scrollbar systems, ~15px with classic scrollbars,
+  // and it can differ by input device on macOS). The right-padding compensation
+  // subtracts this, so a hardcoded guess is wrong for whichever scrollbar type
+  // the device isn't — measuring makes the content edge line up in every case.
+  // scrollbar-gutter: stable keeps this value constant whether or not scrolling.
+  let scrollEl = $state<HTMLElement>();
+  function measureGutter() {
+    if (scrollEl) {
+      scrollEl.style.setProperty('--scrollbar-gutter-w', `${scrollEl.offsetWidth - scrollEl.clientWidth}px`);
+    }
+  }
   onMount(() => {
+    measureGutter();
     if (!sheetEl) return;
     const ro = new ResizeObserver(() => {
       document.documentElement.style.setProperty('--sheet-height', `${sheetEl!.offsetHeight}px`);
+      measureGutter();
     });
     ro.observe(sheetEl);
     return () => {
@@ -130,7 +144,7 @@
       />
     </div>
 
-    <div class="scroll">
+    <div class="scroll" bind:this={scrollEl}>
       <div class="views" role="tabpanel" id={PANEL_ID} aria-labelledby={activeTabElId} tabindex={0}>
         {#if $view === 'district'}
           <DistrictView />
@@ -157,13 +171,12 @@
     display: flex;
     flex-direction: column;
     background: var(--color-surface-base);
-    /* Width the scroll area subtracts from its right padding to compensate for
-       the reserved scrollbar gutter, so its content right edge aligns with the
-       (un-gutter'd) frozen header. Must equal the ACTUAL scrollbar width: 0 for
-       the overlay scrollbars used on mobile/touch (default here), ~15px for the
-       classic scrollbars on the desktop panel (set in the >=768px block). Using
-       15px on mobile collapsed the whole right padding, since overlay gutters
-       reserve ~0 and never add it back. */
+    /* Subtracted from the scroll area's right padding to compensate for the
+       reserved scrollbar gutter, so its content right edge lines up with the
+       frozen header and the body gutter. The real value depends on scrollbar
+       type (0 overlay, ~15px classic) so it's MEASURED at runtime and set inline
+       on .scroll (see measureGutter). This is only the pre-measurement fallback —
+       0 assumes overlay (full padding), the safe default for the common case. */
     --scrollbar-gutter-w: 0px;
   }
 
@@ -272,8 +285,8 @@
          asymmetry against the 16px body gutter.) */
       --pad-l: 0px;
       --pad-r: var(--space-400);
-      /* Desktop panel uses classic scrollbars; compensate for their gutter. */
-      --scrollbar-gutter-w: 15px;
+      /* --scrollbar-gutter-w is measured at runtime (see measureGutter), so no
+         static desktop override here. */
     }
     /* Ignore the mobile expanded height if it lingers after a mobile→desktop resize. */
     .sidebar.is-expanded {
