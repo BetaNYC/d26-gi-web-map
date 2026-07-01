@@ -174,7 +174,7 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # Install R packages not included above
 # A previous version of this file didn't include the stop(...) logic
 # tarchetypes failed to install silently
-RUN Rscript -e 'pkgs <- c("targets","tarchetypes","socratadata","terra","httr","dplyr","tibble","units","arrow","freestiler", "qs2"); \
+RUN Rscript -e 'pkgs <- c("targets","tarchetypes","socratadata","terra","httr","dplyr","tibble","units","arrow","freestiler", "qs2", "spatstat"); \
   install.packages(pkgs); \
   missing <- setdiff(pkgs, installed.packages()[,"Package"]); \
   if (length(missing) > 0) stop("Failed to install: ", paste(missing, collapse=", "))'
