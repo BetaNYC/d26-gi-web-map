@@ -12,7 +12,9 @@ tar_option_set(
                "tibble",
                "units",
                "arrow",
-               "freestiler"),
+               "freestiler",
+               "spatstat",
+               "stringr"),
   format = "qs"
 )
 
@@ -42,6 +44,10 @@ list(
   tar_target(flooding_311_path, "data/prepared/flooding_311.geojson", format = "file"),
   tar_target(flooding_311, get_311(flooding_311_path)),
   tar_target(flooding_311_checks, validate_311(flooding_311)),
+  tar_target(hotspot_311_raster_path,
+             hotspot_raster(flooding_311, d26_zctas, "data/processed/hotspot_311.tif"),
+             format = "file"),
+  tar_target(hotspot_raster_checks, validate_raster(hotspot_311_raster_path, 3857)),
   tar_target(flooding_311_per_zcta_tbl, flooding_311_per_zcta(d26_zctas, flooding_311)),
 
   ## Flood

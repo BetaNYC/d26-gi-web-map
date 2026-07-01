@@ -49,3 +49,58 @@ flooding_311_per_zcta <- function(d26_zctas, flooding_311) {
     )
   )
 }
+
+hotspot_raster <- function(df_311, d26_zctas, path) {
+  # Generate point process object
+  pp <- as.ppp(st_coordinates(df_311),
+               as.owin(d26_zctas))
+  
+  # Get kernel density from point process object
+  # The bandwith parameter sigma was determined manually
+  
+  d <- stats::density(pp, sigma = 400)
+  
+  # Convert to terra raster
+  r <- rast(d)
+  
+  # Assign CRS using authority:code
+  crs(r) <- "epsg:2263"
+  
+  # Set hotspot threshold for visualization to >= median density estimation + 1.5x std. dev.
+  threshold <- median(values(r), na.rm = T) + (1.5 * sd(values(r), na.rm = T))
+  
+  r[r <= threshold] <- NA
+
+  # Write a Cloud Optimized GeoTIFF and return the path
+  writeRaster(r, 
+              path, 
+              filetype = "COG", 
+              overwrite = TRUE,
+              gdal = c("COMPRESS=DEFLATE",
+                       "PREDICTOR=2",
+                       "TARGET_SRS=EPSG:3857",
+                       "RESAMPLING=NEAREST",
+                       "BLOCKSIZE=256",
+                       "OVERVIEWS=IGNORE_EXISTING",
+                       "OVERVIEW_RESAMPLING=NEAREST"))
+  path
+}
+
+validate_raster <- function(path, expected_epsg) {
+  r <- rast(path)
+
+  # Check CRS
+  r_crs <- crs(r, describe = TRUE)
+  
+  if (r_crs$code != as.character(expected_epsg)) {
+    stop(paste0("CRS: expected EPSG:", expected_epsg, ", got EPSG:", r_crs$code))
+  }
+  
+  # Ensure there are non-NA values
+  if (sum(values(r), na.rm = T) == 0) {
+    stop(paste0("No non-NA values present in raster."))
+  }
+  
+  # Return TRUE if all checks pass
+  TRUE
+}
