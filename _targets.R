@@ -13,8 +13,7 @@ tar_option_set(
                "units",
                "arrow",
                "freestiler",
-               "spatstat",
-               "stringr"),
+               "spatstat"),
   format = "qs"
 )
 
