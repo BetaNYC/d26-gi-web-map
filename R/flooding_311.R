@@ -68,11 +68,15 @@ hotspot_raster <- function(df_311, d26_zctas, path) {
   
   # Set hotspot threshold for visualization to >= median density estimation + 1.5x std. dev.
   threshold <- median(values(r), na.rm = T) + (1.5 * sd(values(r), na.rm = T))
+  max_val <- max(values(r), na.rm = T)
   
   r[r <= threshold] <- NA
+  
+  # Normalize hotspot raster to [0,1] for visualization
+  s <- scale_linear(s)
 
   # Write a Cloud Optimized GeoTIFF and return the path
-  writeRaster(r, 
+  writeRaster(s, 
               path, 
               filetype = "COG", 
               overwrite = TRUE,
