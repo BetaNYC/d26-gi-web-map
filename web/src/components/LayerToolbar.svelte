@@ -1,9 +1,19 @@
 <script lang="ts">
   import LayerToggleRow from './primitives/LayerToggleRow.svelte';
   import ContextText from './ContextText.svelte';
-  import { LAYERS } from '../lib/layers';
+  import { LAYERS, type LayerDef } from '../lib/layers';
   import { LAYERS_CONTEXT } from '../lib/copy';
-  import { visibleLayers, toggleLayer } from '../stores';
+  import { visibleLayers, toggleLayer, giFilter, setGiFilter } from '../stores';
+
+  // Only GI carries a filter today; its selection lives in the giFilter store.
+  function filterProps(l: LayerDef, value: string) {
+    if (!l.filter) return undefined;
+    return {
+      options: l.filter.variants.map((v) => ({ value: v.value, label: v.label })),
+      value,
+      onChange: setGiFilter
+    };
+  }
 
   /**
    * Desktop bottom band: context paragraph (left) + the 11-layer toggle
@@ -26,6 +36,7 @@
           : l.indicator}
         on={$visibleLayers.has(l.id)}
         onToggle={() => toggleLayer(l.id)}
+        filter={filterProps(l, $giFilter)}
       />
     {/each}
   </div>
@@ -50,7 +61,10 @@
     overflow-x: auto;
     overflow-y: hidden;
     display: grid;
-    grid-template-columns: repeat(4, minmax(252px, 1fr));
+    /* Track min sized so the widest row — GI, with its Flood-Related/All filter
+       — fits on one line without overflowing; narrower windows scroll the grid
+       (below) rather than clip. Tunable. */
+    grid-template-columns: repeat(4, minmax(270px, 1fr));
     column-gap: var(--space-200);
   }
 </style>

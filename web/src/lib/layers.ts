@@ -7,6 +7,17 @@ export type Indicator =
   | { type: 'swatch'; colorVar: string }
   | { type: 'icon'; code: string };
 
+/**
+ * A map-display filter variant (GI only): the toggle switches which underlying
+ * source renders. Each variant is its own PMTiles file + source layer.
+ */
+export interface LayerFilterVariant {
+  value: string;
+  label: string;
+  file: string;
+  sourceLayer: string;
+}
+
 export interface LayerDef {
   id: string;
   label: string;
@@ -20,10 +31,27 @@ export interface LayerDef {
   cogValue?: number;
   /** Polygon fill opacity override (default 0.5). */
   fillOpacity?: number;
+  /**
+   * Optional map-display filter (GI only). Renders one map layer per variant and
+   * shows the selected one; only actionable while the layer is on. Purely a
+   * display concern — does NOT affect ranks (computed pipeline-side over all
+   * assets). `file`/`sourceLayer` above mirror the default variant.
+   */
+  filter?: {
+    defaultValue: string;
+    variants: LayerFilterVariant[];
+  };
 }
 
 export const LAYERS: LayerDef[] = [
-  { id: 'gi', label: 'Green Infrastructure', indicator: { type: 'icon', code: 'GI' }, ranked: true, rankColumn: 'rank_n_gi_sqmi', delivery: 'pmtiles', file: 'gi_all_layers.pmtiles', sourceLayer: 'gi_all_layers', geometry: 'point' },
+  { id: 'gi', label: 'Green Infrastructure', indicator: { type: 'icon', code: 'GI' }, ranked: true, rankColumn: 'rank_n_gi_sqmi', delivery: 'pmtiles', file: 'gi_flood.pmtiles', sourceLayer: 'gi_flood', geometry: 'point',
+    filter: {
+      defaultValue: 'flood',
+      variants: [
+        { value: 'flood', label: 'Flood-Related', file: 'gi_flood.pmtiles', sourceLayer: 'gi_flood' },
+        { value: 'all', label: 'All', file: 'gi_all.pmtiles', sourceLayer: 'gi_all' }
+      ]
+    } },
   { id: 'flooding_311', label: '311 Service Requests (Flooding-Related)', indicator: { type: 'icon', code: '311' }, ranked: true, rankColumn: 'rank_n_flooding_311_p10k', delivery: 'geojson', file: 'flooding_311.geojson', geometry: 'point' },
   { id: 'catch_basins', label: 'Catch Basins', indicator: { type: 'icon', code: 'CB' }, ranked: true, rankColumn: 'rank_n_cb_sqmi', delivery: 'pmtiles', file: 'catch_basins.pmtiles', sourceLayer: 'catch_basins', geometry: 'point' },
   { id: 'cso', label: 'Combined Sewer Overflow Outfalls', indicator: { type: 'icon', code: 'CSO' }, ranked: false, rankColumn: null, delivery: 'pmtiles', file: 'cso_outfalls.pmtiles', sourceLayer: 'cso_outfalls', geometry: 'point' },

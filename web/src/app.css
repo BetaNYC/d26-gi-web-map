@@ -84,6 +84,7 @@
   --space-200: 8px;
   --space-300: 12px;
   --space-400: 16px;
+  --space-600: 24px;
   --space-1200: 48px;
 
   /* Mobile bottom-sheet peek height (shared so the map's bottom controls can sit
