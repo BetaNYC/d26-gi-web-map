@@ -167,8 +167,9 @@
     display: flex;
     align-items: center;
     gap: var(--space-200);
-    padding-left: var(--space-600);
-    padding-right: var(--space-300);
+    /* Match the toggle-btn's vertical padding so the filter text line centers at
+       the same height as the label (the row centers each child box separately). */
+    padding: var(--space-50) var(--space-300) var(--space-100) var(--space-600);
     background: none;
     border: none;
     cursor: pointer;
