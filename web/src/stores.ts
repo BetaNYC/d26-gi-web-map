@@ -34,6 +34,17 @@ export function closeModal() {
   activeModal.set(null);
 }
 
+/**
+ * Green Infrastructure map-display filter: which asset variant renders.
+ * 'flood' (default) shows the flood-related subset; 'all' shows every GI asset.
+ * Map-display only — does NOT affect ranks (computed pipeline-side over all
+ * assets). Only actionable while the GI layer is on (enforced in the UI).
+ */
+export const giFilter = writable<string>('flood');
+export function setGiFilter(value: string) {
+  giFilter.set(value);
+}
+
 /** Flip a layer's visibility (driven by the layer toggles). */
 export function toggleLayer(id: string) {
   visibleLayers.update((s) => {

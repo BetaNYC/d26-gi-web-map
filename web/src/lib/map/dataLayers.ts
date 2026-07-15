@@ -40,8 +40,31 @@ const FILL_DRAW_ORDER = [
   'tree_canopy'
 ];
 
-const sourceId = (l: LayerDef) => `src-${l.id}`;
-export const layerId = (l: LayerDef) => `lyr-${l.id}`;
+/**
+ * A concrete MapLibre source+layer to build for a registry entry. Most layers
+ * map to a single spec; a filter layer (GI) expands to one spec per variant,
+ * each with its own source file and a `variant` tag used to pick which shows.
+ */
+export interface MapLayerSpec {
+  id: string;
+  sourceId: string;
+  file: string;
+  sourceLayer?: string;
+  variant?: string;
+}
+
+export function mapLayerSpecs(l: LayerDef): MapLayerSpec[] {
+  if (l.filter) {
+    return l.filter.variants.map((v) => ({
+      id: `lyr-${l.id}-${v.value}`,
+      sourceId: `src-${l.id}-${v.value}`,
+      file: v.file,
+      sourceLayer: v.sourceLayer,
+      variant: v.value
+    }));
+  }
+  return [{ id: `lyr-${l.id}`, sourceId: `src-${l.id}`, file: l.file, sourceLayer: l.sourceLayer }];
+}
 
 export async function addDataLayers(map: Map): Promise<void> {
   await ensureIconFont();
@@ -79,13 +102,19 @@ function applyFillDrawOrder(map: Map): void {
 }
 
 function addOne(map: Map, l: LayerDef): void {
-  const sid = sourceId(l);
+  for (const spec of mapLayerSpecs(l)) addSpec(map, l, spec);
+}
+
+/** Build one MapLibre source + layer for a single spec (a plain layer, or one
+ *  variant of a filter layer). All GI variants share the one `GI` icon image. */
+function addSpec(map: Map, l: LayerDef, spec: MapLayerSpec): void {
+  const sid = spec.sourceId;
 
   // COG raster (Tree Canopy, Permeable): colorize the single class value to the
   // layer's swatch token; everything else (incl. NoData 255) is transparent.
   if (l.delivery === 'cog') {
     if (l.geometry !== 'raster' || l.indicator.type !== 'swatch' || l.cogValue == null) return;
-    const url = dataUrl(l.file); // setColorFunction uses the URL WITHOUT the cog:// prefix
+    const url = dataUrl(spec.file); // setColorFunction uses the URL WITHOUT the cog:// prefix
     const [r, g, b] = hexToRgb(cssVar(l.indicator.colorVar));
     const value = l.cogValue;
     setColorFunction(url, (pixel, color) => {
@@ -95,7 +124,7 @@ function addOne(map: Map, l: LayerDef): void {
     if (!map.getSource(sid)) map.addSource(sid, { type: 'raster', url: `cog://${url}`, tileSize: 256 });
     map.addLayer(
       {
-        id: layerId(l),
+        id: spec.id,
         type: 'raster',
         source: sid,
         layout: { visibility: 'none' },
@@ -108,18 +137,18 @@ function addOne(map: Map, l: LayerDef): void {
   }
 
   if (l.delivery === 'pmtiles') {
-    if (!map.getSource(sid)) map.addSource(sid, { type: 'vector', url: `pmtiles://${dataUrl(l.file)}` });
+    if (!map.getSource(sid)) map.addSource(sid, { type: 'vector', url: `pmtiles://${dataUrl(spec.file)}` });
   } else if (l.delivery === 'geojson') {
     // 311 GeoJSON is cache-busted — it refreshes daily.
-    if (!map.getSource(sid)) map.addSource(sid, { type: 'geojson', data: freshDataUrl(l.file) });
+    if (!map.getSource(sid)) map.addSource(sid, { type: 'geojson', data: freshDataUrl(spec.file) });
   }
 
   if (l.geometry === 'point' && l.indicator.type === 'icon') {
     map.addLayer({
-      id: layerId(l),
+      id: spec.id,
       type: 'symbol',
       source: sid,
-      ...(l.sourceLayer ? { 'source-layer': l.sourceLayer } : {}),
+      ...(spec.sourceLayer ? { 'source-layer': spec.sourceLayer } : {}),
       layout: {
         visibility: 'none',
         'icon-image': ICON_PREFIX + l.id,
@@ -139,10 +168,10 @@ function addOne(map: Map, l: LayerDef): void {
   } else if (l.geometry === 'polygon' && l.indicator.type === 'swatch') {
     map.addLayer(
       {
-        id: layerId(l),
+        id: spec.id,
         type: 'fill',
         source: sid,
-        ...(l.sourceLayer ? { 'source-layer': l.sourceLayer } : {}),
+        ...(spec.sourceLayer ? { 'source-layer': spec.sourceLayer } : {}),
         layout: { visibility: 'none' },
         paint: { 'fill-color': cssVar(l.indicator.colorVar), 'fill-opacity': l.fillOpacity ?? 0.5 }
       },
@@ -151,12 +180,24 @@ function addOne(map: Map, l: LayerDef): void {
   }
 }
 
-/** Sync each layer's visibility to the toggle set. Safe to call before layers exist. */
-export function applyLayerVisibility(map: Map, visible: Set<string>): void {
+/**
+ * Sync each layer's visibility to the toggle set. For a filter layer (GI), only
+ * the spec matching the active variant shows (and only when the layer is on);
+ * `activeVariants` maps layer id → selected variant value, defaulting to the
+ * layer's `filter.defaultValue`. Safe to call before layers exist.
+ */
+export function applyLayerVisibility(
+  map: Map,
+  visible: Set<string>,
+  activeVariants: Record<string, string> = {}
+): void {
   for (const l of LAYERS) {
-    const id = layerId(l);
-    if (map.getLayer(id)) {
-      map.setLayoutProperty(id, 'visibility', visible.has(l.id) ? 'visible' : 'none');
+    const on = visible.has(l.id);
+    const active = activeVariants[l.id] ?? l.filter?.defaultValue;
+    for (const spec of mapLayerSpecs(l)) {
+      if (!map.getLayer(spec.id)) continue;
+      const show = on && (spec.variant == null || spec.variant === active);
+      map.setLayoutProperty(spec.id, 'visibility', show ? 'visible' : 'none');
     }
   }
 }

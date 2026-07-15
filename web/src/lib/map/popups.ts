@@ -1,9 +1,9 @@
 import maplibregl, { type Map } from 'maplibre-gl';
 import { mount, unmount } from 'svelte';
 import Popup from '../../components/Popup.svelte';
-import { LAYERS } from '../layers';
+import { LAYERS, type LayerDef } from '../layers';
 import { buildPopupRows } from '../popups';
-import { layerId } from './dataLayers';
+import { mapLayerSpecs } from './dataLayers';
 import { iconSizePx, ICON_NATIVE_PX } from './markers';
 
 /**
@@ -53,48 +53,53 @@ function closeCurrent() {
 export function registerPointPopups(map: Map): void {
   for (const l of LAYERS) {
     if (l.geometry !== 'point') continue;
-    const id = layerId(l);
-
-    map.on('click', id, (e) => {
-      const f = e.features?.[0];
-      if (!f) return;
-      const rows = buildPopupRows(l.id, (f.properties ?? {}) as Record<string, unknown>);
-      if (rows.length === 0) return;
-      if (f.geometry.type !== 'Point') return;
-
-      const coords = f.geometry.coordinates.slice(0, 2) as [number, number];
-
-      closeCurrent();
-      const target = document.createElement('div');
-      const cmp = mount(Popup, { target, props: { rows } });
-      const popup = new maplibregl.Popup({
-        closeButton: false,
-        closeOnClick: true,
-        className: 'd26-popup',
-        maxWidth: 'none',
-        anchor: 'bottom-left',
-        offset: popupOffset(map.getZoom())
-      })
-        .setLngLat(coords)
-        .setDOMContent(target)
-        .addTo(map);
-
-      // Keep the popup pinned to the icon as it resizes with zoom.
-      const onZoom = () => popup.setOffset(popupOffset(map.getZoom()));
-      map.on('zoom', onZoom);
-      popup.on('close', () => {
-        map.off('zoom', onZoom);
-        unmount(cmp);
-        if (current?.popup === popup) current = null;
-      });
-      current = { popup, cmp };
-    });
-
-    map.on('mouseenter', id, () => {
-      map.getCanvas().style.cursor = 'pointer';
-    });
-    map.on('mouseleave', id, () => {
-      map.getCanvas().style.cursor = '';
-    });
+    // A filter layer (GI) has one map layer per variant; register on each so the
+    // popup works whichever variant is showing (only the visible one has
+    // rendered features to hit).
+    for (const spec of mapLayerSpecs(l)) registerPointPopup(map, l, spec.id);
   }
+}
+
+function registerPointPopup(map: Map, l: LayerDef, id: string): void {
+  map.on('click', id, (e) => {
+    const f = e.features?.[0];
+    if (!f) return;
+    const rows = buildPopupRows(l.id, (f.properties ?? {}) as Record<string, unknown>);
+    if (rows.length === 0) return;
+    if (f.geometry.type !== 'Point') return;
+
+    const coords = f.geometry.coordinates.slice(0, 2) as [number, number];
+
+    closeCurrent();
+    const target = document.createElement('div');
+    const cmp = mount(Popup, { target, props: { rows } });
+    const popup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: true,
+      className: 'd26-popup',
+      maxWidth: 'none',
+      anchor: 'bottom-left',
+      offset: popupOffset(map.getZoom())
+    })
+      .setLngLat(coords)
+      .setDOMContent(target)
+      .addTo(map);
+
+    // Keep the popup pinned to the icon as it resizes with zoom.
+    const onZoom = () => popup.setOffset(popupOffset(map.getZoom()));
+    map.on('zoom', onZoom);
+    popup.on('close', () => {
+      map.off('zoom', onZoom);
+      unmount(cmp);
+      if (current?.popup === popup) current = null;
+    });
+    current = { popup, cmp };
+  });
+
+  map.on('mouseenter', id, () => {
+    map.getCanvas().style.cursor = 'pointer';
+  });
+  map.on('mouseleave', id, () => {
+    map.getCanvas().style.cursor = '';
+  });
 }

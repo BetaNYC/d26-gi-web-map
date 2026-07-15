@@ -2,9 +2,19 @@
   import Modal from '../primitives/Modal.svelte';
   import LayerToggleRow from '../primitives/LayerToggleRow.svelte';
   import ContextText from '../ContextText.svelte';
-  import { LAYERS } from '../../lib/layers';
+  import { LAYERS, type LayerDef } from '../../lib/layers';
   import { LAYERS_CONTEXT } from '../../lib/copy';
-  import { visibleLayers, toggleLayer, closeModal } from '../../stores';
+  import { visibleLayers, toggleLayer, closeModal, giFilter, setGiFilter } from '../../stores';
+
+  // Only GI carries a filter today; its selection lives in the giFilter store.
+  function filterProps(l: LayerDef, value: string) {
+    if (!l.filter) return undefined;
+    return {
+      options: l.filter.variants.map((v) => ({ value: v.value, label: v.label })),
+      value,
+      onChange: setGiFilter
+    };
+  }
 
   // Mobile Layers modal (Figma 66:1716): the 11 toggle rows + context, in the
   // bottom-sheet placement. Same registry/store as the desktop bottom band.
@@ -20,6 +30,7 @@
           : l.indicator}
         on={$visibleLayers.has(l.id)}
         onToggle={() => toggleLayer(l.id)}
+        filter={filterProps(l, $giFilter)}
       />
     {/each}
   </div>

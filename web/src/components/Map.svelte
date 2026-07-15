@@ -7,7 +7,7 @@
   import { cssVar } from '../lib/map/tokens';
   import { dataUrl } from '../lib/config';
   import { get } from 'svelte/store';
-  import { mapStore, visibleLayers, hoveredZip, selectedZip, view } from '../stores';
+  import { mapStore, visibleLayers, hoveredZip, selectedZip, view, giFilter } from '../stores';
   import { addDataLayers, applyLayerVisibility } from '../lib/map/dataLayers';
   import { registerPointPopups } from '../lib/map/popups';
   import { LAYERS } from '../lib/layers';
@@ -69,6 +69,7 @@
   let layersReady = false;
   let currentVisible = new Set<string>();
   let unsub: (() => void) | undefined;
+  let filterUnsub: (() => void) | undefined;
   let hoverUnsub: (() => void) | undefined;
   let selectUnsub: (() => void) | undefined;
   let viewUnsub: (() => void) | undefined;
@@ -89,6 +90,11 @@
    *  the District view (where only the D26 council feature shows). */
   function visiblySelected(): string | null {
     return get(view) === 'zip-detail' ? get(selectedZip) : null;
+  }
+
+  /** Active filter variant per layer id (GI's flood/all), for applyLayerVisibility. */
+  function currentVariants(): Record<string, string> {
+    return { gi: get(giFilter) };
   }
 
   /** Set a zip's feature-state on BOTH the polygon source (drives fill/line) and
@@ -224,7 +230,7 @@
       await addDataLayers(map!);
       registerPointPopups(map!);
       layersReady = true;
-      applyLayerVisibility(map!, currentVisible);
+      applyLayerVisibility(map!, currentVisible, currentVariants());
       // Apply current selection/view state now that the layers exist.
       applySelected(map!, visiblySelected());
       applyCouncilVisibility(map!, get(view));
@@ -242,9 +248,15 @@
     unsub = visibleLayers.subscribe((v) => {
       currentVisible = v;
       if (map && layersReady) {
-        applyLayerVisibility(map, v);
+        applyLayerVisibility(map, v, currentVariants());
         applyFillGate(map); // re-evaluate the highlight-fill gate (#1)
       }
+    });
+
+    // GI filter (flood/all) → swap which GI variant renders. Point layer, so no
+    // fill-gate re-evaluation needed.
+    filterUnsub = giFilter.subscribe(() => {
+      if (map && layersReady) applyLayerVisibility(map, currentVisible, currentVariants());
     });
 
     // Reflect the hovered zip (from map OR sidebar) as feature-state on the ZCTA
@@ -274,6 +286,7 @@
 
   onDestroy(() => {
     unsub?.();
+    filterUnsub?.();
     hoverUnsub?.();
     selectUnsub?.();
     viewUnsub?.();

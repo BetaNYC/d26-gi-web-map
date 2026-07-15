@@ -52,7 +52,7 @@ export function formatEastern(value: unknown): string {
 
 /** Per-layer popup fields, keyed by lib/layers.ts layer id. */
 export const POPUP_FIELDS: Record<string, PopupField[]> = {
-  // Green Infrastructure (gi_all_layers): asset_type, constructed_date
+  // Green Infrastructure (gi_flood / gi_all): asset_type, constructed_date
   gi: [
     { key: 'asset_type', label: 'Asset Type' },
     { key: 'constructed_date', label: 'Constructed Date', format: formatIsoDate }
