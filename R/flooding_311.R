@@ -73,7 +73,7 @@ hotspot_raster <- function(df_311, d26_zctas, path) {
   r[r <= threshold] <- NA
   
   # Normalize hotspot raster to [0,1] for visualization
-  s <- scale_linear(s)
+  s <- scale_linear(r)
 
   # Write a Cloud Optimized GeoTIFF and return the path
   writeRaster(s, 
