@@ -77,11 +77,18 @@ write_catch_basins_pmtiles <- function(cb, path) {
   write_pmtiles(cb |> select(unitid), path)
 }
 
-# GI display PMTiles — filtered to the client-specified asset types
-write_gi_display_pmtiles <- function(gi_all_assets, path) {
+# GI flood PMTiles — filtered to the client-specified asset types
+write_gi_flood_pmtiles <- function(gi_all_assets, path) {
   display <- gi_all_assets |>
     select(asset_type, constructed_date) |>
     filter(asset_type %in% gi_selected_features)
+  write_pmtiles(display, path)
+}
+
+# GI all PMTiles — not filtered
+write_gi_all_pmtiles <- function(gi_all_assets, path) {
+  display <- gi_all_assets |>
+    select(asset_type, constructed_date)
   write_pmtiles(display, path)
 }
 
