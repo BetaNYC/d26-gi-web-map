@@ -76,7 +76,7 @@
   --color-layer-tree-canopy: #b3de69;
   --color-layer-permeable-surfaces: #ccebc5;
   --color-layer-sewer-areas: #cabddc;
-  --color-layer-hotspot: #c673a9; /* 311 hotspot ramp core — the toggle swatch */
+  --color-layer-hotspot: #b970a8; /* 311 hotspot ramp core — the toggle swatch */
 
   /* Spacing scale (Figma Spacing/space/*, 4px base) */
   --space-25: 1px;
