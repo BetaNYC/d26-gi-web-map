@@ -13,6 +13,29 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
+/** Piecewise-linear sample of an ascending-t color ramp at t ∈ [0,1]. */
+function sampleRamp(
+  stops: { t: number; rgb: [number, number, number] }[],
+  t: number
+): [number, number, number] {
+  if (t <= stops[0].t) return stops[0].rgb;
+  const last = stops[stops.length - 1];
+  if (t >= last.t) return last.rgb;
+  for (let i = 1; i < stops.length; i++) {
+    if (t <= stops[i].t) {
+      const a = stops[i - 1];
+      const b = stops[i];
+      const f = (t - a.t) / (b.t - a.t);
+      return [
+        Math.round(a.rgb[0] + (b.rgb[0] - a.rgb[0]) * f),
+        Math.round(a.rgb[1] + (b.rgb[1] - a.rgb[1]) * f),
+        Math.round(a.rgb[2] + (b.rgb[2] - a.rgb[2]) * f)
+      ];
+    }
+  }
+  return last.rgb;
+}
+
 /**
  * Build the toggle-layer sources + layers from the registry, all
  * initially hidden. Point layers use a canvas-generated icon marker (the Figma
@@ -37,7 +60,8 @@ const FILL_DRAW_ORDER = [
   'permeable',
   'swf_moderate',
   'swf_limited',
-  'tree_canopy'
+  'tree_canopy',
+  'hotspot_311' // highest fill — the hotspot overlay reads on top of the others
 ];
 
 /**
@@ -110,17 +134,38 @@ function addOne(map: Map, l: LayerDef): void {
 function addSpec(map: Map, l: LayerDef, spec: MapLayerSpec): void {
   const sid = spec.sourceId;
 
-  // COG raster (Tree Canopy, Permeable): colorize the single class value to the
-  // layer's swatch token; everything else (incl. NoData 255) is transparent.
+  // COG raster. Two colorizers: a classified single value → one swatch color
+  // (Tree Canopy, Permeable), or a continuous [0,1] ramp with alpha falloff (311
+  // Hotspots). NoData is transparent either way.
   if (l.delivery === 'cog') {
-    if (l.geometry !== 'raster' || l.indicator.type !== 'swatch' || l.cogValue == null) return;
+    if (l.geometry !== 'raster') return;
     const url = dataUrl(spec.file); // setColorFunction uses the URL WITHOUT the cog:// prefix
-    const [r, g, b] = hexToRgb(cssVar(l.indicator.colorVar));
-    const value = l.cogValue;
-    setColorFunction(url, (pixel, color) => {
-      if (pixel[0] === value) color.set([r, g, b, 255]);
-      else color.set([0, 0, 0, 0]);
-    });
+
+    if (l.cogRamp) {
+      const stops = l.cogRamp.stops.map((s) => ({ t: s.t, rgb: hexToRgb(s.color) }));
+      setColorFunction(url, (pixel, color, meta) => {
+        const v = pixel[0];
+        // Transparent for NoData. Below-threshold cells read as NaN; and because
+        // this raster's noData is NaN, the protocol pads out-of-extent tile
+        // pixels with Infinity (see CogReader fillValue) — !isFinite catches both.
+        if (!Number.isFinite(v) || v === meta.noData) { color.set([0, 0, 0, 0]); return; }
+        const t = v < 0 ? 0 : v > 1 ? 1 : v;
+        const [r, g, b] = sampleRamp(stops, t);
+        // Opaque: intensity is carried by the ramp color (pale → magenta), so the
+        // hotspot's color stays independent of any layer rendered beneath it.
+        color.set([r, g, b, 255]);
+      });
+    } else if (l.indicator.type === 'swatch' && l.cogValue != null) {
+      const [r, g, b] = hexToRgb(cssVar(l.indicator.colorVar));
+      const value = l.cogValue;
+      setColorFunction(url, (pixel, color) => {
+        if (pixel[0] === value) color.set([r, g, b, 255]);
+        else color.set([0, 0, 0, 0]);
+      });
+    } else {
+      return;
+    }
+
     if (!map.getSource(sid)) map.addSource(sid, { type: 'raster', url: `cog://${url}`, tileSize: 256 });
     map.addLayer(
       {
@@ -128,8 +173,8 @@ function addSpec(map: Map, l: LayerDef, spec: MapLayerSpec): void {
         type: 'raster',
         source: sid,
         layout: { visibility: 'none' },
-        // nearest keeps crisp class edges (no blending to transparent); opacity tunable.
-        paint: { 'raster-resampling': 'nearest', 'raster-opacity': 1 }
+        // Classified layers stay crisp (nearest); the continuous ramp smooths (linear).
+        paint: { 'raster-resampling': l.cogRamp ? 'linear' : 'nearest', 'raster-opacity': 1 }
       },
       map.getLayer(POLY_BEFORE) ? POLY_BEFORE : undefined
     );
