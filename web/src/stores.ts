@@ -16,11 +16,14 @@ export const districtAttrs = writable<AttrRow | null>(null);
 /**
  * Which toggle layers (lib/layers.ts ids) are currently visible. Default-on:
  * Green Infrastructure + every polygon and raster layer (the other point layers,
- * 311 and CSO, start off).
+ * 311 and CSO, start off). The 311 hotspot is an analytical overlay and also
+ * starts off, so the default map isn't over-stacked.
  */
 const DEFAULT_VISIBLE = new Set<string>([
   'gi',
-  ...LAYERS.filter((l) => l.geometry === 'polygon' || l.geometry === 'raster').map((l) => l.id)
+  ...LAYERS.filter(
+    (l) => (l.geometry === 'polygon' || l.geometry === 'raster') && l.id !== 'hotspot_311'
+  ).map((l) => l.id)
 ]);
 export const visibleLayers = writable<Set<string>>(DEFAULT_VISIBLE);
 
