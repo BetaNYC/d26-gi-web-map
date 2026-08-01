@@ -3,6 +3,9 @@
 "name": "flooding_311",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
+{ "type": "Feature", "properties": { "created_date": "2026-07-30T19:53:27Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.925048241132998, 40.743893599008999 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-07-30T19:03:00Z", "closed_date": null, "agency": "DEP", "descriptor": "Backup" }, "geometry": { "type": "Point", "coordinates": [ -73.919487805668993, 40.743255808651 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-07-30T14:32:37Z", "closed_date": null, "agency": "DEP", "descriptor": "Backup" }, "geometry": { "type": "Point", "coordinates": [ -73.952348523077006, 40.744605296254001 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-07-30T12:34:02Z", "closed_date": null, "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.913111081967003, 40.746009649321003 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-07-30T10:04:08Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.901746277962999, 40.751064578829997 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-07-30T08:17:17Z", "closed_date": null, "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.889293501986998, 40.736445711704 ] } },
