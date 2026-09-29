@@ -3,6 +3,10 @@
 "name": "flooding_311",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
+{ "type": "Feature", "properties": { "created_date": "2026-09-26T23:12:54Z", "closed_date": null, "agency": "DEP", "descriptor": "Backup" }, "geometry": { "type": "Point", "coordinates": [ -73.940078976582996, 40.747948161163997 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-09-26T22:02:51Z", "closed_date": null, "agency": "DEP", "descriptor": "Backup" }, "geometry": { "type": "Point", "coordinates": [ -73.940078976582996, 40.747948161163997 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-09-26T10:03:52Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.944615008713001, 40.744258743221998 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-09-26T09:27:15Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.937585136414995, 40.767195735980998 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-09-25T19:56:55Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.915194090184997, 40.751171330985002 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-09-25T17:24:07Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.895889433370002, 40.738930376844003 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-09-25T11:51:08Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.937833017063994, 40.741425443771 ] } },
