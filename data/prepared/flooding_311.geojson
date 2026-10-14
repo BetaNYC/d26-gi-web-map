@@ -3,6 +3,11 @@
 "name": "flooding_311",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
+{ "type": "Feature", "properties": { "created_date": "2026-10-12T14:04:12Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.943070907263007, 40.760583747251999 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-11T22:26:07Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.896035580469004, 40.751649687102997 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-11T20:56:19Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.942313113240004, 40.760295172153 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-11T18:08:44Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.919895770503004, 40.737110591931 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-11T13:44:07Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.926555221121006, 40.755084910873997 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-10T17:03:10Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.940146788950997, 40.748793579101999 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-09T16:55:56Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.900193508504998, 40.754011103699 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-09T16:14:51Z", "closed_date": "2026-10-09T16:56:00Z", "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.905349176854003, 40.747891920594 ] } },
