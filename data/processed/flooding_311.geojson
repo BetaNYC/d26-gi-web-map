@@ -3,6 +3,13 @@
 "name": "flooding_311",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
+{ "type": "Feature", "properties": { "created_date": "2026-10-19T21:20:01Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.903070075711, 40.754084923598001 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-19T18:38:31Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.903662648823001, 40.753646261054001 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-19T18:17:09Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.904640933137003, 40.753542774647997 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-19T17:01:52Z", "closed_date": null, "agency": "DEP", "descriptor": "Catch Basin Clogged" }, "geometry": { "type": "Point", "coordinates": [ -73.918349017916995, 40.744901857658 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-19T15:25:06Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.939315087468998, 40.750560761926998 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-19T15:02:20Z", "closed_date": null, "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.902945062439997, 40.720977593512004 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-19T12:54:18Z", "closed_date": null, "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.941245575484999, 40.738770315181 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-18T17:20:09Z", "closed_date": "2026-10-18T17:27:00Z", "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.905349176854003, 40.747891920594 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-18T12:01:45Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.942020069208994, 40.761049829648996 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-17T11:27:43Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.895170322425002, 40.730396279402001 ] } },
