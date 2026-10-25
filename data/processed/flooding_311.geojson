@@ -3,7 +3,7 @@
 "name": "flooding_311",
 "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
 "features": [
-{ "type": "Feature", "properties": { "created_date": "2026-10-22T18:30:08Z", "closed_date": null, "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.896511758263003, 40.726250163556003 ] } },
+{ "type": "Feature", "properties": { "created_date": "2026-10-22T18:30:08Z", "closed_date": "2026-10-22T21:25:00Z", "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.896511758263003, 40.726250163556003 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-22T18:15:21Z", "closed_date": "2026-10-22T18:18:00Z", "agency": "DEP", "descriptor": "Manhole Overflow" }, "geometry": { "type": "Point", "coordinates": [ -73.937330759472999, 40.749788425124002 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-21T18:49:21Z", "closed_date": null, "agency": "DEP", "descriptor": "Flooding on Street" }, "geometry": { "type": "Point", "coordinates": [ -73.891848910475005, 40.738273401783999 ] } },
 { "type": "Feature", "properties": { "created_date": "2026-10-21T17:31:23Z", "closed_date": "2026-10-21T18:35:00Z", "agency": "DEP", "descriptor": "Backup" }, "geometry": { "type": "Point", "coordinates": [ -73.898848083405994, 40.717781909715001 ] } },
